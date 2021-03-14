@@ -12,3 +12,7 @@ def get_seat_id(partition):
 
 # Part 1
 print(max(map(get_seat_id, data)))
+
+# Part 2:
+seats = {get_seat_id(line) for line in data}
+print(set(range(min(seats), max(seats))).difference(seats))
