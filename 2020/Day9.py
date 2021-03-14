@@ -11,8 +11,23 @@ def check_sum(number, pairs):
 
 
 # Part 1
-
+invalid_number = None
 for ind, val in enumerate(data[25:], 25):
     if not check_sum(val, data[ind-25:ind]):
-        print(val)
+        invalid_number = val
         break
+print(invalid_number)
+
+# Part 2
+
+for start_index in range(len(data)):
+    end_index = start_index + 1
+    while True:
+        summed = sum(data[start_index:end_index + 1])
+        if summed == invalid_number:
+            print(min(data[start_index:end_index + 1]) + max(data[start_index:end_index + 1]))
+            exit()
+        elif summed > invalid_number:
+            break
+        end_index += 1
+
