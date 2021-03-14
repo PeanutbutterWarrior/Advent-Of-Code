@@ -36,3 +36,21 @@ while len(unchecked_parents) > 0:
             unchecked_parents.append(parent)
 print(len(possible_parents))
 
+# Part 2
+
+children = defaultdict(list)
+count = 0
+for rule in data:
+    if rule:
+        parent, childs = parse_line(rule)
+        children[parent] += childs
+
+
+def check_children(bag):
+    count = 0
+    for child, num in children[bag]:
+        count += num * check_children(child)
+    return count + 1
+
+
+print(check_children('shiny gold') - 1)
