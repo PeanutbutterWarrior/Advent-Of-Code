@@ -21,6 +21,12 @@ if not os.path.isdir(year):
 if not os.path.isdir(f"{year}/Day{day}"):
     os.mkdir(f"{year}/Day{day}")
 
+if os.path.exists(f'{year}/Day{day}/Day{day}.py'):
+    overwrite = input(f'{year}/Day{day}/Day{day}.py already exists. Overwrite? ')
+    if overwrite != 'y':
+        print("Aborting")
+        quit()
+
 with open(f"{year}/Day{day}/Day{day}.py", "w+") as file:
     file.write(f"""with open("Day{day}.txt", "r") as file:
     data = file.read()
