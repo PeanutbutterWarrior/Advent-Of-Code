@@ -33,8 +33,4 @@ with open(f"{year}/Day{day}/Day{day}.py", "w+") as file:
 """)
 
 with open(f"{year}/Day{day}/Day{day}.txt", "wb+") as file:
-    if response.content[-1] == '\n':
-        content = response.content[:-1]
-    else:
-        content = response.content
-    file.write(content)
+    file.write(response.content.strip())
