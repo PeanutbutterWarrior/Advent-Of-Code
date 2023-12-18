@@ -1,0 +1,14 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_LINE 200
+
+void main() {
+    FILE * file = fopen("input.txt", "r");
+    char linebuf[MAX_LINE];
+
+    while (fgets(linebuf, MAX_LINE, file) != NULL) {
+
+    }
+}

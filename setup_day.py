@@ -29,8 +29,9 @@ if os.path.exists(f'{year}/Day{day}/day{day}.{extension}'):
         quit()
 
 with open(f"{year}/Day{day}/day{day}.{extension}", "w+") as file:
-    if extension == "py":
-        file.write(f"""with open("input.txt", "r") as file:\n    data = file.read()\n""")
+    if os.path.exists(f"templates/{extension}.txt"):
+        with open(f"templates/{extension}.txt") as template:
+            file.write(template.read())
 
 with open(f"{year}/Day{day}/input.txt", "wb+") as file:
     file.write(response.content.strip())

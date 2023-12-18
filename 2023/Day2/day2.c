@@ -19,7 +19,7 @@ typedef struct game {
     Pull * pulls;
 } Game;
 
-/// @brief 
+ 
 void main() {
     FILE * file = fopen("input.txt", "r");
     Game games[NUM_GAMES];
