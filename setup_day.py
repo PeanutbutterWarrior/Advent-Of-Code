@@ -5,6 +5,7 @@ import json
 
 year = sys.argv[1]
 day = sys.argv[2]
+extension = sys.argv[3]
 
 with open("headers.json", "r") as file:
     headers = json.load(file)
@@ -21,16 +22,15 @@ if not os.path.isdir(year):
 if not os.path.isdir(f"{year}/Day{day}"):
     os.mkdir(f"{year}/Day{day}")
 
-if os.path.exists(f'{year}/Day{day}/Day{day}.py'):
-    overwrite = input(f'{year}/Day{day}/Day{day}.py already exists. Overwrite? ')
+if os.path.exists(f'{year}/Day{day}/day{day}.{extension}'):
+    overwrite = input(f'{year}/Day{day}/day{day}.{extension} already exists. Overwrite? ')
     if overwrite != 'y':
         print("Aborting")
         quit()
 
-with open(f"{year}/Day{day}/Day{day}.py", "w+") as file:
-    file.write(f"""with open("Day{day}.txt", "r") as file:
-    data = file.read()
-""")
+with open(f"{year}/Day{day}/day{day}.{extension}", "w+") as file:
+    if extension == "py":
+        file.write(f"""with open("input.txt", "r") as file:\n    data = file.read()\n""")
 
-with open(f"{year}/Day{day}/Day{day}.txt", "wb+") as file:
+with open(f"{year}/Day{day}/input.txt", "wb+") as file:
     file.write(response.content.strip())
