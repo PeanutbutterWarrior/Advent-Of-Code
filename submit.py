@@ -56,10 +56,11 @@ def run_program(args):
         command += " test.txt"
     else:
         command += " input.txt"
+    
     proc = subprocess.run(command, capture_output=True)
-    if proc.stderr != None and len(proc.stderr) > 0:
+    if proc.returncode != 0:
         print(proc.stderr.decode(), file=sys.stderr)
-        exit()
+        exit(1)
     return proc.stdout.decode().strip().split("\r\n")
 
 def submit_value(args, value):

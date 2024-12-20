@@ -60,7 +60,7 @@ def get_test_file(args):
     data = data[data.find("<pre>"):data.find("</pre>") + 7]
     soup = BeautifulSoup(data, "html.parser")
     code_block = soup.find("pre").find("code")
-    return code_block.get_text()
+    return code_block.get_text().strip()
 
 def get_current_folder(args):
     path = Path(str(args.year), f"Day{args.day}")
