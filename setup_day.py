@@ -56,6 +56,7 @@ def get_input_file(args):
 def get_test_file(args):
     url = f"https://adventofcode.com/{args.year}/day/{args.day}"
     data = make_request(url)
+    data = data[data.find("<pre>"):data.find("</pre>") + 7]
     soup = BeautifulSoup(data, "html.parser")
     code_block = soup.find("pre").find("code")
     return code_block.get_text()
