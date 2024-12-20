@@ -1,37 +1,69 @@
-import sys
 import requests
-import os
 import json
+import argparse
+import datetime
+from enum import Enum, auto
+from pathlib import Path
 
-year = sys.argv[1]
-day = sys.argv[2]
-extension = sys.argv[3]
+class Language(Enum):
+    PYTHON = auto(), "py"
+    C = auto(), "c"
 
-with open("headers.json", "r") as file:
-    headers = json.load(file)
+    def __init__(self, _, extension):
+        self.ext = extension
 
-url = f"https://adventofcode.com/{year}/day/{day}/input"
-response = requests.get(url, **headers)
-if response.status_code != 200:
-    print(f"Request failed. Status: {response.status_code}")
-    print(response.content)
-    quit()
+    @classmethod
+    def _missing_(cls, value):
+        return language_abbr.get(value, None)
 
-if not os.path.isdir(year):
-    os.mkdir(year)
-if not os.path.isdir(f"{year}/Day{day}"):
-    os.mkdir(f"{year}/Day{day}")
+language_abbr = {"py": Language.PYTHON, "python": Language.PYTHON, "c": Language.C}
 
-if os.path.exists(f'{year}/Day{day}/day{day}.{extension}'):
-    overwrite = input(f'{year}/Day{day}/day{day}.{extension} already exists. Overwrite? ')
-    if overwrite != 'y':
-        print("Aborting")
+def get_args():
+    today = datetime.date.today()
+    parser = argparse.ArgumentParser(prog="day_setup.py", description="Sets up files for each day of Advent of Code")
+    
+    parser.add_argument("-y", "--year", type=int, default=today.year)
+    parser.add_argument("-d", "--day", type=int, default=today.day)
+    parser.add_argument(
+        "-l", "--language",
+        choices=list(language_abbr.keys()),
+        default=Language.PYTHON,
+        type=Language,
+        dest="lang"
+    )
+    parser.add_argument("--headers", default="headers.json")
+
+    return parser.parse_args()
+
+def load_headers(args):
+    with open(args.headers, "r") as file:
+        return json.load(file)
+
+def get_input_file(args):
+    url = f"https://adventofcode.com/{args.year}/day/{args.day}/input"
+    headers = load_headers(args)
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        print(f"Request failed. Status: {response.status_code}")
+        print(response.content)
         quit()
+    return response.content.decode().strip()
 
-with open(f"{year}/Day{day}/day{day}.{extension}", "w+") as file:
-    if os.path.exists(f"templates/{extension}.txt"):
-        with open(f"templates/{extension}.txt") as template:
-            file.write(template.read())
+def get_current_folder(args):
+    path = Path(str(args.year), f"Day{args.day}")
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
-with open(f"{year}/Day{day}/input.txt", "wb+") as file:
-    file.write(response.content.strip())
+def get_template(args):
+    with open(Path("templates", f"{args.lang.ext}.txt")) as file:
+        return file.read()
+
+def write_files(args):
+    folder = get_current_folder(args)
+    day_name = f"Day{args.day}"
+    (folder / f"{day_name}.{args.lang.ext}").write_text(get_template(args))
+    (folder / f"{day_name}.txt").write_text(get_input_file(args))
+
+if __name__ == "__main__":
+    args = get_args()
+    write_files(args)
