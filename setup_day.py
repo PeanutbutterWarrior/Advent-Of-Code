@@ -33,6 +33,7 @@ def get_args():
         dest="lang"
     )
     parser.add_argument("--headers", default="headers.json")
+    parser.add_argument("--overwrite", action="store_true")
 
     return parser.parse_args()
 
@@ -76,7 +77,9 @@ def get_template(args):
 def write_files(args):
     folder = get_current_folder(args)
     day_name = f"Day{args.day}"
-    (folder / f"{day_name}.{args.lang.ext}").write_text(get_template(args))
+    code_file = folder / f"{day_name}.{args.lang.ext}"
+    if args.overwrite or not code_file.exists():
+        code_file.write_text(get_template(args))
     (folder / "input.txt").write_text(get_input_file(args))
     (folder / "test.txt").write_text(get_test_file(args))
 
