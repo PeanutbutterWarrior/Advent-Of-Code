@@ -5,19 +5,7 @@ import datetime
 from enum import Enum, auto
 from pathlib import Path
 from bs4 import BeautifulSoup
-
-class Language(Enum):
-    PYTHON = auto(), "py"
-    C = auto(), "c"
-
-    def __init__(self, _, extension):
-        self.ext = extension
-
-    @classmethod
-    def _missing_(cls, value):
-        return language_abbr.get(value, None)
-
-language_abbr = {"py": Language.PYTHON, "python": Language.PYTHON, "c": Language.C}
+from languages import Language
 
 def get_args():
     today = datetime.date.today()
@@ -27,7 +15,6 @@ def get_args():
     parser.add_argument("-d", "--day", type=int, default=today.day)
     parser.add_argument(
         "-l", "--language",
-        choices=list(language_abbr.keys()),
         default=Language.PYTHON,
         type=Language,
         dest="lang"
@@ -77,11 +64,16 @@ def get_template(args):
 def write_files(args):
     folder = get_current_folder(args)
     day_name = f"Day{args.day}"
+
     code_file = folder / f"{day_name}.{args.lang.ext}"
     if args.overwrite or not code_file.exists():
         code_file.write_text(get_template(args))
+    
     (folder / "input.txt").write_text(get_input_file(args))
-    (folder / "test.txt").write_text(get_test_file(args))
+
+    test_file = folder / "test.txt"
+    if args.overwrite or not test_file.exists():
+        test_file.write_text(get_test_file(args))
 
 if __name__ == "__main__":
     args = get_args()

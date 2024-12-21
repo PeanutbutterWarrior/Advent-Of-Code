@@ -5,19 +5,7 @@ import subprocess
 import os
 from pathlib import Path
 import sys
-
-class Language(Enum):
-    PYTHON = auto(), "py"
-    C = auto(), "c"
-
-    def __init__(self, _, extension):
-        self.ext = extension
-
-    @classmethod
-    def _missing_(cls, value):
-        return language_abbr.get(value, None)
-
-language_abbr = {"py": Language.PYTHON, "python": Language.PYTHON, "c": Language.C}
+from languages import Language
 
 def get_args():
     today = datetime.date.today()
@@ -27,7 +15,6 @@ def get_args():
     parser.add_argument("-d", "--day", type=int, default=today.day)
     parser.add_argument(
         "-l", "--language",
-        choices=list(language_abbr.keys()),
         default=Language.PYTHON,
         type=Language,
         dest="lang"
@@ -47,17 +34,38 @@ def get_current_folder(args):
     path.mkdir(parents=True, exist_ok=True)
     return path
 
-def run_program(args):
-    os.chdir(get_current_folder(args))
-    if args.lang == Language.PYTHON:
-        command = f"python Day{args.day}.py"
-    
+
+def run_python(args):
+    command = f"python Day{args.day}.py"
     if args.test:
         command += " test.txt"
     else:
         command += " input.txt"
+
+    return subprocess.run(command, capture_output=True)
+
+def run_c(args):
+    proc = subprocess.run(f"gcc -o out.exe Day{args.day}.c", capture_output=True)
+    if proc.returncode != 0:
+        return proc
+    return subprocess.run("./out.exe", capture_output=True)
+
+def run_rust(args):
+    proc = subprocess.run(f"rustc -o out.exe Day{args.day}.rs", capture_output=True)
+    if proc.returncode != 0:
+        return proc
+    return subprocess.run("./out.exe", capture_output=True)
     
-    proc = subprocess.run(command, capture_output=True)
+
+def run_program(args):
+    os.chdir(get_current_folder(args))
+    if args.lang == Language.PYTHON:
+        proc = run_python(args)
+    elif args.lang == Language.C:
+        proc = run_c(args)
+    elif args.lang == Language.RUST:
+        proc = run_rust(args)
+
     if proc.returncode != 0:
         print(proc.stderr.decode(), file=sys.stderr)
         exit(1)
