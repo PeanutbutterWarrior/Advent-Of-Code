@@ -22,6 +22,7 @@ def get_args():
     parser.add_argument("--headers", default="headers.json")
     parser.add_argument("--no-submit", action="store_false", dest="submit")
     parser.add_argument("--test", action="store_true")
+    parser.add_argument("-f", "--file")
 
     args = parser.parse_args()
     if args.test:
@@ -37,7 +38,9 @@ def get_current_folder(args):
 
 def run_python(args):
     command = f"python Day{args.day}.py"
-    if args.test:
+    if args.file is not None:
+        command += " " + args.file
+    elif args.test:
         command += " test.txt"
     else:
         command += " input.txt"
