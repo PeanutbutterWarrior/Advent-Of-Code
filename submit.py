@@ -70,6 +70,7 @@ def run_program(args):
         proc = run_rust(args)
 
     if proc.returncode != 0:
+        print(proc.stdout.decode())
         print(proc.stderr.decode(), file=sys.stderr)
         exit(1)
     return proc.stdout.decode().strip().split("\r\n")
