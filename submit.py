@@ -79,48 +79,39 @@ def run_program(args):
 
     command = get_command(args)
     filename = f"Day{args.day}.{args.lang.ext}"
-    proc = subprocess.Popen((command, filename, args.file), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    proc = subprocess.Popen((command, filename, args.file), bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env={"PYTHONUNBUFFERED": "1"})
 
     if not args.stream:
         stdout_data, stderr_data = proc.communicate(timeout=1)
-        return proc.returncode, stdout_data, stderr_data
+        if stdout_data.count("\n") > 2:
+            print(stdout_data, end="")
+        print(stderr_data, file=sys.stderr, end="")
+        return proc.returncode, stdout_data
 
-    os.set_blocking(proc.stdout.fileno(), False)
-    os.set_blocking(proc.stderr.fileno(), False)
+    stdout = []
 
-    stdout = TextBuffer()
-    stderr = TextBuffer()
-
-    while proc.poll() is None:
-        try:
-            stdout_data, stderr_data = proc.communicate(timeout=1)
-        except TimeoutError:
-            # Process not ended, keep waiting
-            pass
-        except KeyboardInterrupt:
-            proc.terminate()
-        else:
-            stdout.write(stdout_data)
-            stderr.write(stderr_data)
-        
-        stdout.write(proc.stdout.read())
-        stderr.write(proc.stderr.read())
-
-        while stdout.has_line():
-            print(stdout.read_line())
-        
-        while stderr.has_line():
-            print(stderr.read_line(), file=sys.stderr)
+    for output_line in iter(proc.stdout.readline, ""):
+        stdout.append(output_line)
+        print(output_line, end="", flush=True)
     
-    return proc.returncode, stdout.data, stderr.data
+    stderr = proc.stderr.read()
+
+    proc.stdout.close()
+    proc.stderr.close()
+
+    print(stderr, file=sys.stderr, end="")
+
+    return proc.returncode, "".join(stdout)
 
 def print_output(args, ans):
     ans = ans.split("\n")
-    if len(ans) == 1:
+    if len(ans) == 0:
+        return
+    elif len(ans) == 1:
         ans1 = ans[0]
         ans2 = None
-    elif len(ans) == 2:
-        ans1, ans2 = ans
+    elif len(ans) >= 2:
+        ans1, ans2, *_ = ans
 
     print(f"{args.year} Day {args.day} Part 1: {ans1}")
     if ans2 is not None:
@@ -131,7 +122,7 @@ def submit_value(args, value):
 
 if __name__ == "__main__":
     args = get_args()
-    returncode, output, errors = run_program(args)
+    returncode, output = run_program(args)
     print_output(args, output)
     if args.submit and returncode == 0:
         submit_value(args, output)
