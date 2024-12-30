@@ -10,7 +10,8 @@ height = len(map)
 
 counted = [[False] * width for _ in range(height)]
 
-total = 0
+total1 = 0
+total2 = 0
 for i in range(height):
     for j in range(width):
         if counted[i][j]: continue
@@ -20,25 +21,46 @@ for i in range(height):
         char = map[i][j]
         area = 1
         perimeter = 0
+        corners = 0
         while len(q) > 0:
             x, y = q.pop(-1)
 
-            for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0)):
-                if not(0 <= x + dx < width and 0 <= y + dy < height) or map[y + dy][x + dx] != char:
+            sides = []
+
+            for dx, dy in ((0, -1), (1, 0), (0, 1), (-1, 0)): # NESW
+                inside_map = 0 <= x + dx < width and 0 <= y + dy < height
+                if not inside_map or map[y + dy][x + dx] != char:
                     perimeter += 1
                 elif not counted[y + dy][x + dx]:
                     counted[y + dy][x + dx] = True
                     q.append((x + dx, y + dy))
                     area += 1
-        total += area * perimeter
-print(total)
+                
+                sides.append(inside_map and map[y + dy][x + dx] == char)
+            
+            match sides.count(True):
+                case 0:
+                    corners += 4
+                case 1:
+                    corners += 2
+                case 2:
+                    if not((sides[0] and sides[2]) or (sides[1] and sides[3])):
+                        corners += 1
+            
+            corners_inside = []
+            for dx, dy in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
+                inside_map = 0 <= x + dx < width and 0 <= y + dy < height
+                corners_inside.append(not inside_map or map[y + dy][x + dx] == char)
+            if not corners_inside[0] and sides[0] and sides[3]:
+                corners += 1
+            if not corners_inside[1] and sides[0] and sides[1]:
+                corners += 1
+            if not corners_inside[2] and sides[1] and sides[2]:
+                corners += 1
+            if not corners_inside[3] and sides[2] and sides[3]:
+                corners += 1
 
-file=  open("out.txt", "w+")
-for y, line in enumerate(counted):
-    for x, item in enumerate(line):
-        if item:
-            print(chr(map[y][x]).lower(), end="", file=file)
-        else:
-            print(chr(map[y][x]).upper(), end="", file=file)
-    print("", file=file)
-file.close()
+        total1 += area * perimeter
+        total2 += area * corners
+print(total1)
+print(total2)
