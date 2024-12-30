@@ -2,8 +2,6 @@ import sys
 from functools import cache
 
 numpad_button_pos = {"7": (0, 0), "8": (1, 0), "9": (2, 0), "4": (0, 1), "5": (1, 1), "6": (2, 1), "1": (0, 2), "2": (1, 2), "3": (2, 2), "0": (1, 3), "A": (2, 3)}
-danger_buttons = {"A", "0"}
-
 keypad_button_pos = {"^": (1, 0), "A": (2, 0), "<": (0, 1), "v": (1, 1), ">": (2, 1)}
 
 @cache
@@ -14,7 +12,7 @@ def numpad_path(current, next):
     if x1 == 0 and y2 == 3:
         return (dx + dy + "A",)
     
-    if y1 == 3 and x1 == 0:
+    if y1 == 3 and x2 == 0:
         return (dy + dx + "A",)
     
     return dx + dy + "A", dy + dx + "A"
@@ -41,9 +39,9 @@ def keypad_path(current, next):
     dx, dy = shortest_path_safe(x1, y1, x2, y2)
 
     if x1 == 0 and y2 == 0:
-        return dx + dy + "A"
+        return (dx + dy + "A", )
     if y1 == 0 and x2 == 0:
-        return dy + dx +"A"
+        return (dy + dx +"A", )
     return dx + dy + "A", dy + dx + "A"
 
 @cache
@@ -53,9 +51,21 @@ def shortest_path_for_robot(robot_num, start, end):
     else:
         key_options = keypad_path(start, end)
     
-    if robot_num == 3:
+    if robot_num == final_robot_num:
         return key_options[0]
-    return min(shortest_path_for_robot_seq(robot_num + 1, keys) for keys in key_options)
+    if len(key_options) == 1:
+        return shortest_path_for_robot_seq(robot_num + 1, key_options[0])
+    
+    a = shortest_path_for_robot_seq(robot_num + 1, key_options[0])
+    b = shortest_path_for_robot_seq(robot_num + 1, key_options[1])
+
+    if len(a) < len(b):
+        return a
+    elif len(a) > len(b):
+        return b
+    else:
+        #print(f"Robot {robot_num} no win")
+        return a
 
 def shortest_path_for_robot_seq(robot_num, seq):
     return "".join(shortest_path_for_robot(robot_num, prev, next) for prev, next in zip("A" + seq, seq))
@@ -63,10 +73,23 @@ def shortest_path_for_robot_seq(robot_num, seq):
 with open(sys.argv[1], "r") as file:
     data = file.read().strip()
 
+
+final_robot_num = 3
+
+
 total = 0
 for line in data.split("\n"):
     seq = shortest_path_for_robot_seq(1, line)
-    print(len(seq), int(line[:-1]))
-    #print(seq)
     total += int(line[:-1]) * len(seq)
+print(total)
+
+
+shortest_path_for_robot.cache_clear()
+final_robot_num = 26
+
+total = 0
+for ind, line in enumerate(data.split("\n")):
+    seq = shortest_path_for_robot_seq(1, line)
+    total += int(line[:-1]) * len(seq)
+    print("Finished line", ind)
 print(total)
