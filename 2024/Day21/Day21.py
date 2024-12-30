@@ -52,23 +52,17 @@ def shortest_path_for_robot(robot_num, start, end):
         key_options = keypad_path(start, end)
     
     if robot_num == final_robot_num:
-        return key_options[0]
+        return len(key_options[0])
     if len(key_options) == 1:
         return shortest_path_for_robot_seq(robot_num + 1, key_options[0])
     
     a = shortest_path_for_robot_seq(robot_num + 1, key_options[0])
     b = shortest_path_for_robot_seq(robot_num + 1, key_options[1])
 
-    if len(a) < len(b):
-        return a
-    elif len(a) > len(b):
-        return b
-    else:
-        #print(f"Robot {robot_num} no win")
-        return a
+    return min(a, b)
 
 def shortest_path_for_robot_seq(robot_num, seq):
-    return "".join(shortest_path_for_robot(robot_num, prev, next) for prev, next in zip("A" + seq, seq))
+    return sum(shortest_path_for_robot(robot_num, prev, next) for prev, next in zip("A" + seq, seq))
 
 with open(sys.argv[1], "r") as file:
     data = file.read().strip()
@@ -80,7 +74,7 @@ final_robot_num = 3
 total = 0
 for line in data.split("\n"):
     seq = shortest_path_for_robot_seq(1, line)
-    total += int(line[:-1]) * len(seq)
+    total += int(line[:-1]) * seq
 print(total)
 
 
@@ -90,6 +84,5 @@ final_robot_num = 26
 total = 0
 for ind, line in enumerate(data.split("\n")):
     seq = shortest_path_for_robot_seq(1, line)
-    total += int(line[:-1]) * len(seq)
-    print("Finished line", ind)
+    total += int(line[:-1]) * seq
 print(total)
