@@ -90,9 +90,12 @@ def run_program(args):
 
     stdout = []
 
-    for output_line in iter(proc.stdout.readline, ""):
-        stdout.append(output_line)
-        print(output_line, end="", flush=True)
+    try:
+        for output_line in iter(proc.stdout.readline, ""):
+            stdout.append(output_line)
+            print(output_line, end="", flush=True)
+    except KeyboardInterrupt:
+        proc.terminate()
     
     stderr = proc.stderr.read()
 
