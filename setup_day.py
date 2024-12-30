@@ -46,7 +46,10 @@ def get_test_file(args):
     data = make_request(url)
     data = data[data.find("<pre>"):data.find("</pre>") + 7]
     soup = BeautifulSoup(data, "html.parser")
-    code_block = soup.find("pre").find("code")
+    code_block = soup.find("pre")
+    if code_block is None:
+        return ""
+    code_block = code_block.find("code")
     return code_block.get_text().strip()
 
 def get_current_folder(args):
