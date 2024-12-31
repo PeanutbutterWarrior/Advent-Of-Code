@@ -1,4 +1,5 @@
 from enum import Enum
+import itertools
 
 opcode_data = {
     99: (0, 0),
@@ -10,6 +11,7 @@ opcode_data = {
     6: (2, 0),
     7: (2, 1),
     8: (2, 1),
+    9: (1, 0),
 }
 
 class Opcode(Enum):
@@ -25,26 +27,12 @@ class Opcode(Enum):
     JZ = 6
     LT = 7
     EQ = 8
+    RBASE = 9
 
-class Mode(Enum):
-    @property
-    def indirected(self):
-        match self:
-            case Mode.IMM:
-                return Mode.POS
-            case _:
-                raise ValueError(f"Cannot indirect {self}")
-    
-    @property
-    def directed(self):
-        match self:
-            case Mode.POS:
-                return Mode.IMM
-            case _:
-                raise ValueError(f"Cannot direct {self}")
-    
+class Mode(Enum):    
     POS = 0
     IMM = 1
+    REL = 2
 
 type ModeList = tuple[Mode, ...]
 
@@ -60,13 +48,28 @@ class Intcode:
 
         self.ip: int = 0
         self.input_pointer: int = 0
+        self.rbase: int = 0
         
         self.waiting_for_input: bool = False
         self.running: bool = False
     
+    def get(self, index):
+        if index < 0:
+            raise ValueError("Attempt to read from negative index")
+        if index >= len(self.memory):
+            self.memory.extend(itertools.repeat(0, index - len(self.memory) + 1))
+        return self.memory[index]
+
+    def set(self, index, value):
+        if index < 0:
+            raise ValueError("Attempt to write to negative index")
+        if index >= len(self.memory):
+            self.memory.extend(itertools.repeat(0, index - len(self.memory) + 1))
+        self.memory[index] = value
+    
     def read_instr(self) -> tuple[Opcode, ModeList]:
+        instr = self.get(self.ip)
         self.ip += 1
-        instr = self.memory[self.ip - 1]
 
         op = Opcode(instr % 100)
         instr //= 100
@@ -85,43 +88,54 @@ class Intcode:
         out = []
         modes = iter(modes)
         for _ in range(opcode.num_in):
-            out.append(self.read(self.ip, next(modes)))
+            out.append(self.read_value(self.ip, next(modes)))
             self.ip += 1
         
         for _ in range(opcode.num_out):
-            out.append(self.read(self.ip, next(modes).directed))
+            out.append(self.read_addr(self.ip, next(modes)))
             self.ip += 1
         
         return tuple(out)
 
-    def read(self, index: int, mode: Mode):
-        val = self.memory[index]
+    def read_value(self, index: int, mode: Mode) -> int:
+        val = self.get(index)
         match mode:
             case Mode.POS:
-                return self.memory[val]
+                return self.get(val)
             case Mode.IMM:
                 return val
+            case Mode.REL:
+                return self.get(val + self.rbase)
             case _:
                 raise ValueError(f"Unknown reading Mode {mode}")
-
-    def write(self, index, value):
-        self.memory[index] = value
+        
+    def read_addr(self, index: int, mode: Mode) -> int:
+        val = self.get(index)
+        match mode:
+            case Mode.POS:
+                return val
+            case Mode.IMM:
+                raise ValueError("Cannot read address in immediate mode")
+            case Mode.REL:
+                return val + self.rbase
+            case _:
+                raise ValueError(f"Unknown reading Mode {mode}")
     
     def step(self):
         opcode, modes = self.read_instr()
         args = self.read_args(opcode, modes)
         match opcode:
                 case Opcode.ADD:
-                    self.write(args[2], args[0] + args[1])
+                    self.set(args[2], args[0] + args[1])
                 case Opcode.MUL:
-                    self.write(args[2], args[0] * args[1])
+                    self.set(args[2], args[0] * args[1])
                 case Opcode.HALT:
                     self.running = False
                 case Opcode.IN:
                     if self.input_pointer  < len(self.inputs):
                         value = self.inputs[self.input_pointer]
                         self.input_pointer += 1
-                        self.write(args[0], value)
+                        self.set(args[0], value)
                     else:
                         self.waiting_for_input = True
                         self.ip -= 2
@@ -134,9 +148,11 @@ class Intcode:
                     if not args[0]:
                         self.ip = args[1]
                 case Opcode.LT:
-                    self.write(args[2], 1 if args[0] < args[1] else 0)
+                    self.set(args[2], 1 if args[0] < args[1] else 0)
                 case Opcode.EQ:
-                    self.write(args[2], 1 if args[0] == args[1] else 0)
+                    self.set(args[2], 1 if args[0] == args[1] else 0)
+                case Opcode.RBASE:
+                    self.rbase += args[0]
                 case _:
                     raise ValueError(f"Unknown opcode {opcode}")
 
