@@ -74,7 +74,7 @@ def get_current_folder(args):
 def get_command(args):
     match args.lang:
         case Language.PYTHON:
-            return "python"
+            return sys.executable
         case _:
             return "echo"
 
