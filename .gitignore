@@ -5,3 +5,4 @@ headers.json
 *.exe
 input.txt
 test.txt
+*.egg-info
