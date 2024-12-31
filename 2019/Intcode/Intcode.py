@@ -54,11 +54,15 @@ class Intcode:
         return list(map(int, inp.split(",")))
     
     def __init__(self, program, inputs):
-        self.memory = program
-        self.ip = 0
-        self.running = False
-        self.inputs = iter(inputs)
-        self.output = []
+        self.memory: list[int] = program
+        self.inputs: list[int] = inputs
+        self.output: list[int] = []
+
+        self.ip: int = 0
+        self.input_pointer: int = 0
+        
+        self.waiting_for_input: bool = False
+        self.running: bool = False
     
     def read_instr(self) -> tuple[Opcode, ModeList]:
         self.ip += 1
@@ -114,7 +118,13 @@ class Intcode:
                 case Opcode.HALT:
                     self.running = False
                 case Opcode.IN:
-                    self.write(args[0], next(self.inputs))
+                    if self.input_pointer  < len(self.inputs):
+                        value = self.inputs[self.input_pointer]
+                        self.input_pointer += 1
+                        self.write(args[0], value)
+                    else:
+                        self.waiting_for_input = True
+                        self.ip -= 2
                 case Opcode.OUT:
                     self.output.append(args[0])
                 case Opcode.JNZ:
@@ -132,6 +142,10 @@ class Intcode:
 
     def run(self):
         self.running = True
-        while self.running:
+        while self.running and not self.waiting_for_input:
             self.step()
         return self.output
+
+    def give_input(self, value):
+        self.inputs.append(value)
+        self.waiting_for_input = False
