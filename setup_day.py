@@ -22,7 +22,12 @@ def get_args():
     parser.add_argument("--headers", default="headers.json")
     parser.add_argument("--overwrite", action="store_true")
 
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.year < 2000:
+        args.year += 2000
+
+    return args
 
 def load_headers(args):
     with open(args.headers, "r") as file:

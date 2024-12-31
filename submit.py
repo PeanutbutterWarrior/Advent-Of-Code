@@ -60,6 +60,10 @@ def get_args():
         args.submit = False
         if args.file == "input.txt":
             args.file = "test.txt"
+    
+    if args.year < 2000:
+        args.year += 2000
+
     return args
 
 def get_current_folder(args):
@@ -82,7 +86,7 @@ def run_program(args):
     proc = subprocess.Popen((command, filename, args.file), bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env={"PYTHONUNBUFFERED": "1"})
 
     if not args.stream:
-        stdout_data, stderr_data = proc.communicate(timeout=1)
+        stdout_data, stderr_data = proc.communicate()
         if stdout_data.count("\n") > 2:
             print(stdout_data, end="")
         print(stderr_data, file=sys.stderr, end="")
