@@ -6,3 +6,4 @@ headers.json
 input.txt
 test.txt
 *.egg-info
+build/
