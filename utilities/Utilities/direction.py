@@ -8,12 +8,15 @@ class Dir(enum.Enum):
     SOUTH = 2
     WEST = 3
 
+    @property
     def right(self) -> Self:
         return Dir((self.value + 1) % 4)
     
+    @property
     def left(self) -> Self:
-        return Dir((self.value - 1 % 4))
+        return Dir((self.value - 1) % 4)
     
+    @property
     def behind(self) -> Self:
         return Dir((self.value + 2) % 4)
     
@@ -30,7 +33,6 @@ class Dir(enum.Enum):
     
     def __add__(self, other):
         if len(other) == 2:
-            other = iter(other)
             dx, dy = self.dxy()
             return (other[0] + dx, other[1] + dy)
         
