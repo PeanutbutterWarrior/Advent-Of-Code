@@ -41,9 +41,9 @@ class Intcode:
     def parse_input(inp):
         return list(map(int, inp.split(",")))
     
-    def __init__(self, program, inputs):
+    def __init__(self, program, inputs=None):
         self._memory: list[int] = program
-        self._inputs: list[int] = inputs
+        self._inputs: list[int] = inputs if inputs is not None else []
         self.output: list[int] = []
 
         self._ip: int = 0
