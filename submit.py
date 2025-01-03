@@ -83,7 +83,7 @@ def run_program(args):
 
     command = get_command(args)
     filename = f"Day{args.day}.{args.lang.ext}"
-    proc = subprocess.Popen((command, filename, args.file), bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env={"PYTHONUNBUFFERED": "1"})
+    proc = subprocess.Popen((command, filename, args.file), bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env={"PYTHONUNBUFFERED": "1", "PATH": "", "PYGAME_HIDE_SUPPORT_PROMPT": "1"})
 
     if not args.stream:
         stdout_data, stderr_data = proc.communicate()
