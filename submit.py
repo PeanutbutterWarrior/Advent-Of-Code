@@ -85,32 +85,28 @@ def run_program(args):
     filename = f"Day{args.day}.{args.lang.ext}"
     proc = subprocess.Popen((command, filename, args.file), bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env={"PYTHONUNBUFFERED": "1", "PATH": "", "PYGAME_HIDE_SUPPORT_PROMPT": "1"})
 
-    if not args.stream:
-        stdout_data, stderr_data = proc.communicate()
-        if stdout_data.count("\n") > 2:
-            print(stdout_data, end="")
-        print(stderr_data, file=sys.stderr, end="")
-        return proc.returncode, stdout_data
-
     stdout = []
-
     try:
         for output_line in iter(proc.stdout.readline, ""):
             stdout.append(output_line)
-            print(output_line, end="", flush=True)
+            if args.stream:
+                print(output_line, end="", flush=True)
     except KeyboardInterrupt:
+        print("Keyboard interrupt recieved, killing program")
         proc.terminate()
     
+    proc.wait()
     stderr = proc.stderr.read()
 
     proc.stdout.close()
     proc.stderr.close()
 
-    print(stderr, file=sys.stderr, end="")
+    if len(stderr) > 0:
+        print(stderr, file=sys.stderr, end="")
 
     return proc.returncode, "".join(stdout)
 
-def print_output(args, ans):
+def print_formatted_output(args, ans):
     ans = ans.split("\n")
     if len(ans) == 0:
         return
@@ -130,6 +126,17 @@ def submit_value(args, value):
 if __name__ == "__main__":
     args = get_args()
     returncode, output = run_program(args)
-    print_output(args, output)
-    if args.submit and returncode == 0:
-        submit_value(args, output)
+    if returncode == 0:
+        print_formatted_output(args, output)
+        if args.submit:
+            submit_value(args, output)
+    elif not args.stream:
+        if (numlines := output.count("\n")) > 10:
+            *head, output = output.split("\n",maxsplit=5)
+            output, *tail = output.rsplit("\n",maxsplit=5 if output[-1] != "\n" else 6)
+            print()
+            print("\n".join(head))
+            print(f"*** Ommited {numlines - 10} lines ***")
+            print("\n".join(tail))
+        else:
+            print(output)
