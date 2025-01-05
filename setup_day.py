@@ -40,7 +40,7 @@ def make_request(url):
         print(f"Request failed. Status: {response.status_code}")
         print(response.content)
         quit()
-    return response.content.decode().strip()
+    return response.content.decode().strip("\n")
 
 def get_input_file(args):
     url = f"https://adventofcode.com/{args.year}/day/{args.day}/input"
@@ -55,7 +55,7 @@ def get_test_file(args):
     if code_block is None:
         return ""
     code_block = code_block.find("code")
-    return code_block.get_text().strip()
+    return code_block.get_text().strip("\n")
 
 def get_current_folder(args):
     path = Path(str(args.year), f"Day{args.day}")
