@@ -53,7 +53,8 @@ def get_args():
     parser.add_argument("--no-submit", action="store_false", dest="submit")
     parser.add_argument("--test", action="store_true")
     parser.add_argument("-f", "--file", default="input.txt")
-    parser.add_argument("-s", "--stream-output,", action="store_true", dest="stream") 
+    parser.add_argument("--full-output,", action="store_false", dest="condense") 
+    parser.add_argument("--stream", action="store_true")
 
     args = parser.parse_args()
     if args.test:
@@ -106,19 +107,26 @@ def run_program(args):
 
     return proc.returncode, "".join(stdout)
 
-def print_formatted_output(args, ans):
-    ans = ans.split("\n")
-    if len(ans) == 0:
+def print_formatted_output(args, returncode, output):
+    output = output.strip()
+    num_lines = output.count("\n") + 1
+    if num_lines == 0:
         return
-    elif len(ans) == 1:
-        ans1 = ans[0]
-        ans2 = None
-    elif len(ans) >= 2:
-        ans1, ans2, *_ = ans
-
-    print(f"{args.year} Day {args.day} Part 1: {ans1}")
-    if ans2 is not None:
+    elif num_lines == 1:
+        ans1, *_ = output.split("\n", maxsplit=1)
+        print(f"{args.year} Day {args.day} Part 1: {ans1}")
+    elif num_lines == 2:
+        ans1, ans2, *_ = output.split("\n", maxsplit=2)
+        print(f"{args.year} Day {args.day} Part 1: {ans1}")
         print(f"{args.year} Day {args.day} Part 2: {ans2}")
+    elif num_lines <= 10 or not args.condense:
+        print(output)
+    else:
+        *head, output = output.split("\n",maxsplit=5)
+        output, *tail = output.rsplit("\n",maxsplit=5)
+        print("\n".join(head))
+        print(f"*** Ommited {num_lines - 10} lines ***")
+        print("\n".join(tail))
 
 def submit_value(args, value):
     ...
@@ -126,17 +134,7 @@ def submit_value(args, value):
 if __name__ == "__main__":
     args = get_args()
     returncode, output = run_program(args)
-    if returncode == 0:
-        print_formatted_output(args, output)
-        if args.submit:
-            submit_value(args, output)
-    elif not args.stream:
-        if (numlines := output.count("\n")) > 10:
-            *head, output = output.split("\n",maxsplit=5)
-            output, *tail = output.rsplit("\n",maxsplit=5 if output[-1] != "\n" else 6)
-            print()
-            print("\n".join(head))
-            print(f"*** Ommited {numlines - 10} lines ***")
-            print("\n".join(tail))
-        else:
-            print(output)
+    if not args.stream:
+        print_formatted_output(args, returncode, output)
+    if args.submit and returncode == 0:
+        submit_value(args, output)
