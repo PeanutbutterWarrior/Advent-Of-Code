@@ -1,1 +1,1 @@
-from .interpreter import Intcode
+from .interpreter import Intcode, AsciiIntcode

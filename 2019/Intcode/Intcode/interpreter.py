@@ -166,3 +166,29 @@ class Intcode:
     def give_input(self, value):
         self._inputs.append(value)
         self.waiting_for_input = False
+
+class AsciiIntcode(Intcode):
+    def __init__(self, program, input=None):
+        if input is None:
+            super().__init__(program)
+        else:
+            super().__init__(program, [ord(i) if type(i) == str else i for i in input])
+    
+    def give_input(self, value: str | int):
+        if type(value) == str:
+            if len(value) == 1:
+                super().give_input(ord(value))
+            else:
+                for i in value:
+                    super().give_input(ord(i))
+                super().give_input(10) # \n
+        else:
+            super().give_input(value)
+    
+    def run(self) -> tuple[str, int | None]:
+        output = super().run()
+        final_output = None
+        if output[-1] > 128:
+            final_output = output.pop(-1)
+        output = "".join(map(chr, output))
+        return output, final_output
