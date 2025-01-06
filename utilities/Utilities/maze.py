@@ -26,6 +26,9 @@ class DjikstraMaze(Maze):
         super().__init__(maze)
         self._costs: list[list[int]] = [[float("inf") for _ in range(self.width)] for _ in range(self.height)]
     
+    def __copy__(self):
+        return DjikstraMaze(self.maze)
+    
     def set_cost(self, index: tuple[int, int], cost: int):
         if len(index) != 2:
             raise ValueError("Index must be a two-length list or tuple")
