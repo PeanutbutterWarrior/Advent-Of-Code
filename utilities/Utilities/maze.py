@@ -1,4 +1,5 @@
 from typing import Any, Self
+from copy import copy, deepcopy
 
 # Created for 2019 Day 17
 class Maze:
@@ -21,6 +22,12 @@ class Maze:
         x, y = index
         return 0 <= x < self.width and 0 <= y < self.height
 
+    def __deepcopy__(self, memo):
+        return Maze(deepcopy(self.maze, memo))
+
+    def __str__(self, true_char=".", false_char="#") -> str:
+        return "\n".join(["".join(true_char if char else false_char for char in line) for line in self.maze])
+
 class DjikstraMaze(Maze):
     def __init__(self, maze: list[list[Any]]):
         super().__init__(maze)
@@ -28,6 +35,9 @@ class DjikstraMaze(Maze):
     
     def __copy__(self):
         return DjikstraMaze(self.maze)
+
+    def __deepcopy__(self, memo):
+        return DjikstraMaze(deepcopy(self.maze, memo))
     
     def set_cost(self, index: tuple[int, int], cost: int):
         if len(index) != 2:
