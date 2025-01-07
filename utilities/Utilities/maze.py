@@ -15,6 +15,14 @@ class Maze:
         if not(0 <= x < self.width and 0 <= y < self.height):
             return False
         return self.maze[y][x]
+    
+    def __setitem__(self, index: tuple[int, int], value: Any):
+        if len(index) != 2:
+            raise ValueError("Index must be a two-length list or tuple")
+        x, y = index
+        if not(0 <= x < self.width and 0 <= y < self.height):
+            return
+        self.maze[y][x] = value
 
     def __contains__(self, index: tuple[int, int]) -> bool:
         if len(index) != 2:
